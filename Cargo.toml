@@ -1,0 +1,45 @@
+[package]
+name = "comfyui-mcp-bridge"
+version = "0.1.0"
+edition = "2024"
+description = "Portable Windows MCP bridge for ComfyUI and the Civitai CLI"
+license = "MIT"
+
+[dependencies]
+anyhow = "1.0"
+axum = { version = "0.8", features = ["macros"] }
+chrono = { version = "0.4", features = ["clock", "serde"] }
+futures = "0.3"
+local-ip-address = "0.6"
+rand = "0.9"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream"] }
+rmcp = { version = "3.1.4", features = ["server", "transport-streamable-http-server"] }
+schemars = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+subtle = "2.6"
+sysinfo = "0.39"
+tokio = { version = "1.0", features = ["full"] }
+tokio-util = "0.7"
+tower-http = { version = "0.6", features = ["catch-panic", "limit", "set-header"] }
+tray-icon = { version = "0.24.2", default-features = false, features = ["common-controls-v6"] }
+uuid = { version = "1.0", features = ["v4", "serde"] }
+webbrowser = "1.0"
+windows = { version = "0.62", features = [
+  "Win32_Foundation",
+  "Win32_System_Console",
+  "Win32_UI_WindowsAndMessaging"
+] }
+
+[build-dependencies]
+winresource = "0.1"
+
+[dev-dependencies]
+tempfile = "3.0"
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+opt-level = "s"
+panic = "abort"
+strip = "symbols"
