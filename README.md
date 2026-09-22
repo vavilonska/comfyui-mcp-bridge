@@ -1,161 +1,90 @@
 # ComfyUI MCP Bridge
 
-一个 Windows 便携式单文件应用，把本机的 ComfyUI 模型目录和 Civitai CLI
-通过 MCP Streamable HTTP 暴露给可信局域网内的 agent。
+[中文](#中文) · [English](#english)
 
-## 主要能力
+## 中文
 
-- 自动发现 ComfyUI：安装路径支持手动配置、环境变量、运行进程、常用目录和有限深度盘符扫描；HTTP 地址优先解析运行进程的 `--listen/--port`，并验证本机 `8188`、`8189`、`8190`。
-- 标准 MCP Streamable HTTP：支持 MCP `2024-11-05` 至 `2026-07-28`
-  的协议协商。
-- 内置官方 Civitai Windows CLI；系统里有 CLI 时优先使用系统版本。
-- 自动模型路由：未指定目录时调用 `--layout comfyui --root <ComfyUI>`。
-- 显式模型目录：agent 可以传本机绝对路径，但默认只能写入 ComfyUI 根目录
-  或面板批准的根目录。
-- 后台下载任务：单任务队列、状态查询、取消、输出和退出码。
-- 本地管理面板：MCP 开关、地址、Token、ComfyUI/CLI 路径、下载任务和日志。
-- Windows 系统托盘：打开面板、开关 MCP、重新发现、打开日志和退出。
-- 单个自包含 EXE：不需要安装 Python、Node、.NET 或 Rust。
+Windows 便携单文件工具，通过 MCP Streamable HTTP 为可信局域网中的 Agent 提供本机 ComfyUI 发现、Civitai 模型搜索与下载管理。无需安装 Python、Node 或 Rust；它不是工作流执行器。
 
-## 下载
+### 下载与使用
 
-从 [GitHub Releases](https://github.com/vavilonska/comfyui-mcp-bridge/releases) 下载 Windows x64 便携包并解压。发布包不包含任何本机配置、Token 或模型文件。
-
-## 直接使用
-
-1. 双击 `ComfyUI-MCP-Bridge.exe`。
-2. 程序会在 EXE 同目录创建 `data`，启动托盘并打开面板。
-3. Windows 防火墙首次询问时，只对“专用网络”放行。
-4. 在面板检查 ComfyUI 路径和已验证的 HTTP 地址；自动识别错误时可手动填写并保存。
-5. 点击“复制 Agent 配置”，粘贴到支持 Streamable HTTP 的 MCP 客户端。
-
-默认监听 `0.0.0.0:8765`，MCP endpoint 是：
-
-```text
-http://<本机局域网 IP>:8765/mcp
-```
-
-每次请求必须带：
-
-```http
-Authorization: Bearer <面板中显示的 Token>
-```
-
-通用客户端配置示例：
+1. 从 [Releases](https://github.com/vavilonska/comfyui-mcp-bridge/releases) 下载 Windows x64 ZIP，解压运行 `ComfyUI-MCP-Bridge.exe`。
+2. 程序在同目录创建 `data`，显示托盘和本机管理面板。检查 ComfyUI 路径及 HTTP 地址。
+3. 在面板复制 Agent 配置，并连接 `/mcp`。默认监听 `0.0.0.0:8765`，请求必须携带面板中的 Bearer Token。客户端配置字段可能不同。
 
 ```json
 {
   "mcpServers": {
     "comfyui": {
       "type": "streamable-http",
-      "url": "http://192.168.1.10:8765/mcp",
-      "headers": {
-        "Authorization": "Bearer 替换成面板中的Token"
-      }
+      "url": "http://127.0.0.1:8765/mcp",
+      "headers": { "Authorization": "Bearer YOUR_MCP_TOKEN" }
     }
   }
 }
 ```
 
-字段名会因 agent 客户端而异；面板复制的是上面的通用格式。
+远程 Agent 将 `127.0.0.1` 替换为本机局域网地址。HTTP 明文仅适合可信网络；跨网络连接应自行配置加密隧道或 TLS。防火墙只对所需专用网络放行。
 
-## Civitai 登录
+### 功能
 
-模型搜索和读取公开信息不要求登录；多数模型文件下载需要 Civitai Token。
-应用不会向远程 agent 暴露或记录这个 Token。
+- 自动发现 ComfyUI 安装路径和服务地址，也可手动指定；验证常见本机端口。
+- 内置 Civitai CLI 0.1.102，优先使用显式配置或 PATH 中的 CLI。
+- 单任务后台下载队列、状态查询、取消和退出码；默认按 ComfyUI 模型类型分目录。
+- 托盘和面板可控制 MCP 开关、Token、路径、任务和日志。
+- 管理接口只接受本机连接并使用独立密钥；下载目录限制在 ComfyUI 或明确批准的根目录。拒绝 UNC、设备路径、系统目录及盘符根目录。
 
-内置 CLI 首次运行后位于：
+搜索公开信息无需登录；多数下载需要 Civitai Token，可自行运行 `.\data\bin\civitai-0.1.102.exe login`，或在启动前设置 `CIVITAI_TOKEN`。Civitai 凭据不会作为工具结果返回。
 
-```powershell
-.\data\bin\civitai-0.1.102.exe login
-```
+### MCP 工具 / MCP tools
 
-也可以在启动应用前设置 `CIVITAI_TOKEN`。如果面板手动指定了 CLI 路径，
-该路径优先；否则依次使用 PATH 中的 CLI 和内置 CLI。
-
-## MCP 工具
-
-| 工具 | 用途 |
+| 工具 / Tool | 用途 / Purpose |
 |---|---|
-| `server_status` | 查看 ComfyUI、CLI 和活动下载状态，不返回密钥 |
-| `comfyui_discover` | 重新扫描并返回排序后的 ComfyUI 候选 |
-| `civitai_search_models` | 搜索 Civitai 公共模型目录 |
-| `civitai_get_model` | 获取模型及其版本列表 |
-| `civitai_get_version` | 获取精确版本、文件、大小和哈希 |
-| `civitai_plan_download` | dry-run，返回目标、大小、SHA256 和认证要求 |
-| `civitai_download` | 启动异步下载并立即返回 job UUID |
-| `civitai_download_status` | 查询一个下载任务 |
-| `civitai_downloads_list` | 列出最近任务 |
-| `civitai_download_cancel` | 取消活动任务 |
+| `server_status` | 状态 / Status |
+| `comfyui_discover` | 重新发现 / Rediscover ComfyUI |
+| `civitai_search_models` | 搜索模型 / Search models |
+| `civitai_get_model` | 模型详情 / Model details |
+| `civitai_get_version` | 版本、文件、哈希 / Version, files and hashes |
+| `civitai_plan_download` | 下载预览 / Download plan |
+| `civitai_download` | 启动下载 / Start download |
+| `civitai_download_status` | 任务状态 / Job status |
+| `civitai_downloads_list` | 最近任务 / Recent jobs |
+| `civitai_download_cancel` | 取消任务 / Cancel job |
 
-下载输入示例：
+下载输入必须在 `model_id` 和 `version_id` 中二选一；`target_dir` 是运行 Bridge 的 Windows 主机路径，不是 Agent 机器路径。支持的 MCP 协议协商范围为 `2024-11-05` 至 `2026-07-28`。
 
-```json
-{
-  "version_id": 691639,
-  "model_id": null,
-  "file": null,
-  "all": false,
-  "target_dir": null,
-  "force": false,
-  "dry_run": false,
-  "for_base": null
-}
-```
+### 构建与许可
 
-`model_id` 和 `version_id` 必须二选一。`target_dir` 是运行本程序的 Windows
-主机路径，不是调用 agent 所在机器的路径。省略时由 Civitai CLI 自动按
-ComfyUI 模型类型放入 `models` 子目录。
+使用 Windows 稳定版 Rust 和对应 C/C++ 链接工具，运行 `cargo test --locked` 或 `.\build-portable.ps1`。构建依赖随源码保存的 `vendor/civitai/civitai.exe`；输出为 `dist/ComfyUI-MCP-Bridge.exe`。发布时 26 项 Rust 测试和便携构建通过，未重新完成所有客户端的端到端验收。程序未做 Authenticode 签名。
 
-## 安全默认值
+代码 [MIT](LICENSE)，内置 Civitai CLI 为 Apache-2.0，见 [第三方声明](THIRD_PARTY_NOTICES.md) 及 `vendor/civitai/LICENSE`。本项目非 ComfyUI/Civitai 官方产品。
 
-- 管理 API 只接受本机连接，并使用每次启动重新生成的独立面板密钥；
-  局域网 MCP Token 无法调用管理 API。
-- MCP Bearer Token 使用 256 位随机数，可在面板重新生成。
-- MCP SDK 校验 `Host` 和浏览器 `Origin`，防止 DNS rebinding。
-- 显式下载目录默认受 ComfyUI 根目录和批准根目录白名单限制。
-- 禁止 UNC、设备路径、盘符根目录和 Windows 系统目录。
-- 下载槽位以原子方式限制为一个，所有 Civitai CLI 子进程总并发不超过四个。
-- HTTP 明文只适合可信局域网。跨网络请使用 Tailscale、WireGuard 或带 TLS
-  的反向代理；反向代理只应暴露 `/mcp`，不要暴露 `/api` 或管理面板。
+## English
 
-## 便携数据
+A portable, single-file Windows tool exposing local ComfyUI discovery, Civitai model search and download management to trusted LAN agents over MCP Streamable HTTP. No Python, Node or Rust installation is needed to run it. It is not a workflow execution server.
 
-```text
-ComfyUI-MCP-Bridge.exe
-data/
-  config.json
-  bin/civitai-0.1.102.exe
-  logs/app.log
-```
+### Download and use
 
-设置环境变量 `COMFYUI_MCP_DATA_DIR` 可以覆盖数据目录，主要用于测试。
+1. Download the Windows x64 ZIP from [Releases](https://github.com/vavilonska/comfyui-mcp-bridge/releases), extract it and run `ComfyUI-MCP-Bridge.exe`.
+2. The application creates `data` beside the executable and opens its tray and local management panel. Verify the ComfyUI path and HTTP address.
+3. Copy the Agent configuration from the panel and connect to `/mcp`. The default listener is `0.0.0.0:8765`; requests require the panel's Bearer Token. Client configuration formats may differ; a generic example is shown above.
 
-## 从源码构建
+For a remote agent, replace `127.0.0.1` with the Windows host's LAN address. Plain HTTP is for trusted networks only; use an encrypted tunnel or TLS across networks. Allow firewall access only on the required private network.
 
-需要 Rust 1.88+ 和 Windows GNU 或 MSVC 工具链：
+### Features
 
-```powershell
-.\build-portable.ps1
-```
+- Automatic ComfyUI installation/service discovery with manual overrides and common local-port checks.
+- Bundled Civitai CLI 0.1.102; an explicit CLI path or a PATH installation takes precedence.
+- One active background download, status/cancellation/exit codes and automatic ComfyUI model-folder routing.
+- Tray and panel controls for MCP, tokens, paths, jobs and logs.
+- Local-only management API with a separate secret. Download paths are restricted to ComfyUI or explicitly approved roots; UNC/device paths, system directories and drive roots are rejected.
 
-脚本先执行全部测试，再使用静态 CRT 和 LTO 构建：
+Public searches need no login; most downloads require a Civitai token. Run `.\data\bin\civitai-0.1.102.exe login` yourself, or set `CIVITAI_TOKEN` before launch. Civitai credentials are not returned in tool results.
 
-```text
-dist\ComfyUI-MCP-Bridge.exe
-```
+The bilingual tool table above lists every MCP tool. Download requests require exactly one of `model_id` and `version_id`. `target_dir` refers to the Windows host running the bridge, not the agent machine. MCP version negotiation supports `2024-11-05` through `2026-07-28`.
 
-手动验证：
+### Build and license
 
-```powershell
-cargo fmt --all -- --check
-cargo test --all-targets
-cargo check --all-targets
-```
+Use stable Rust for Windows with the matching C/C++ linker toolchain. Run `cargo test --locked` or `.\build-portable.ps1`. Builds require the included `vendor/civitai/civitai.exe`; output is `dist/ComfyUI-MCP-Bridge.exe`. The release passed 26 Rust tests and a portable build; end-to-end behavior across all clients was not revalidated. Binaries are not Authenticode-signed.
 
-## 许可
-
-本项目使用 MIT License。内置 Civitai CLI 使用 Apache License 2.0；详见
-[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) 和
-[`vendor/civitai/LICENSE`](vendor/civitai/LICENSE)。完整第三方许可也嵌入面板的
-`/licenses/civitai` 页面。
+Project code is [MIT](LICENSE); the bundled Civitai CLI is Apache-2.0. See [third-party notices](THIRD_PARTY_NOTICES.md) and `vendor/civitai/LICENSE`. This is not an official ComfyUI or Civitai product.
