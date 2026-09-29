@@ -101,4 +101,4 @@ Project code is [MIT](LICENSE); the bundled Civitai CLI is Apache-2.0. See [thir
 
 ## Related projects / 相关项目
 
-[Black Screen Tray](https://github.com/vavilonska/black-screen-tray) · [OMPmail](https://github.com/vavilonska/OMPmail) · [All projects / 全部项目](https://github.com/vavilonska#projects--项目)
+[Black Screen Tray](https://github.com/vavilonska/black-screen-tray) · [OMPmail](https://github.com/vavilonska/OMPmail) · [All projects / 全部项目](https://github.com/vavilonska?tab=repositories)
