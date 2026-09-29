@@ -1,5 +1,15 @@
 # ComfyUI MCP Bridge
 
+**A portable Windows MCP server for discovering ComfyUI and searching, downloading, and managing Civitai models.**
+
+通过 MCP 让 Agent 发现 ComfyUI、搜索 Civitai，并管理模型下载。
+
+[快速安装](#下载与使用) · [English setup](#download-and-use) · [Download / 下载](https://github.com/vavilonska/comfyui-mcp-bridge/releases/latest) · [MIT](LICENSE)
+
+![ComfyUI MCP Bridge — conceptual workflow / 功能流程示意](docs/assets/overview.svg)
+
+> Trusted-network model management; not a workflow executor. / 适用于可信网络，不执行 ComfyUI 工作流。
+
 [中文](#中文) · [English](#english)
 
 ## 中文
@@ -88,3 +98,7 @@ The bilingual tool table above lists every MCP tool. Download requests require e
 Use stable Rust for Windows with the matching C/C++ linker toolchain. Run `cargo test --locked` or `.\build-portable.ps1`. Builds require the included `vendor/civitai/civitai.exe`; output is `dist/ComfyUI-MCP-Bridge.exe`. The release passed 26 Rust tests and a portable build; end-to-end behavior across all clients was not revalidated. Binaries are not Authenticode-signed.
 
 Project code is [MIT](LICENSE); the bundled Civitai CLI is Apache-2.0. See [third-party notices](THIRD_PARTY_NOTICES.md) and `vendor/civitai/LICENSE`. This is not an official ComfyUI or Civitai product.
+
+## Related projects / 相关项目
+
+[Black Screen Tray](https://github.com/vavilonska/black-screen-tray) · [OMPmail](https://github.com/vavilonska/OMPmail) · [All projects / 全部项目](https://github.com/vavilonska#projects--项目)
