@@ -67,6 +67,8 @@ Windows 便携单文件工具，通过 MCP Streamable HTTP 为可信局域网中
 
 使用 Windows 稳定版 Rust 和对应 C/C++ 链接工具，运行 `cargo test --locked` 或 `.\build-portable.ps1`。构建依赖随源码保存的 `vendor/civitai/civitai.exe`；输出为 `dist/ComfyUI-MCP-Bridge.exe`。发布时 26 项 Rust 测试和便携构建通过，未重新完成所有客户端的端到端验收。程序未做 Authenticode 签名。
 
+安全依赖：`Cargo.lock` 将出站 HTTPS 使用的 rustls 锁定为 0.23.45，修复 [GHSA-2mjx-qc3c-rqvc](https://github.com/advisories/GHSA-2mjx-qc3c-rqvc)（受影响版本为 0.23.13–0.23.44）。从源码构建请保留锁文件并使用 `cargo build --release --locked`；此更新不为 Bridge 的入站 HTTP 接口启用 TLS，也不更新内置 Civitai CLI。
+
 代码 [MIT](LICENSE)，内置 Civitai CLI 为 Apache-2.0，见 [第三方声明](THIRD_PARTY_NOTICES.md) 及 `vendor/civitai/LICENSE`。本项目非 ComfyUI/Civitai 官方产品。
 
 ## English
@@ -96,6 +98,8 @@ The bilingual tool table above lists every MCP tool. Download requests require e
 ### Build and license
 
 Use stable Rust for Windows with the matching C/C++ linker toolchain. Run `cargo test --locked` or `.\build-portable.ps1`. Builds require the included `vendor/civitai/civitai.exe`; output is `dist/ComfyUI-MCP-Bridge.exe`. The release passed 26 Rust tests and a portable build; end-to-end behavior across all clients was not revalidated. Binaries are not Authenticode-signed.
+
+Security dependency: `Cargo.lock` pins rustls used for outbound HTTPS to 0.23.45, fixing [GHSA-2mjx-qc3c-rqvc](https://github.com/advisories/GHSA-2mjx-qc3c-rqvc) (affected versions: 0.23.13–0.23.44). Keep the lockfile and use `cargo build --release --locked` when building from source. This update does not add TLS to the bridge's inbound HTTP endpoints or update the bundled Civitai CLI.
 
 Project code is [MIT](LICENSE); the bundled Civitai CLI is Apache-2.0. See [third-party notices](THIRD_PARTY_NOTICES.md) and `vendor/civitai/LICENSE`. This is not an official ComfyUI or Civitai product.
 
